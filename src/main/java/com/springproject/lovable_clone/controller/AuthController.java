@@ -4,6 +4,7 @@ import com.springproject.lovable_clone.dto.auth.AuthResponse;
 import com.springproject.lovable_clone.dto.auth.LoginRequest;
 import com.springproject.lovable_clone.dto.auth.SignupRequest;
 import com.springproject.lovable_clone.dto.auth.UserProfileResponse;
+import com.springproject.lovable_clone.security.AuthUtil;
 import com.springproject.lovable_clone.service.AuthService;
 import com.springproject.lovable_clone.service.UserService;
 import lombok.AccessLevel;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private AuthService authService;
     private UserService userService;
+    private AuthUtil authUtil;
 
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> signup(@RequestBody SignupRequest request){
@@ -35,7 +37,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserProfileResponse> getProfile(){
-        Long userId = 1l;
+        Long userId = authUtil.getCurrentUserId();
         return ResponseEntity.ok(userService.getProfile(userId));
     }
 }

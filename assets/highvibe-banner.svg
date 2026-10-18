@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" fill="none" role="img" aria-label="HighVibe banner — describe it, generate it, ship it">
+  <defs>
+    <linearGradient id="hv-bg" x1="0" y1="0" x2="1200" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0A0D16"/>
+      <stop offset="0.55" stop-color="#0E1120"/>
+      <stop offset="1" stop-color="#161129"/>
+    </linearGradient>
+    <linearGradient id="hv-brand" x1="104" y1="112" x2="200" y2="208" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="0.55" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="hv-wordmark" x1="240" y1="100" x2="640" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.55" stop-color="#C4B5FD"/>
+      <stop offset="1" stop-color="#67E8F9"/>
+    </linearGradient>
+    <linearGradient id="hv-strip" x1="792" y1="0" x2="1032" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#06B6D4"/>
+    </linearGradient>
+    <radialGradient id="hv-glow-a" cx="0" cy="0" r="1" gradientTransform="translate(180 60) scale(430 300)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C3AED" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#7C3AED" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hv-glow-b" cx="0" cy="0" r="1" gradientTransform="translate(1040 320) scale(420 320)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06B6D4" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#06B6D4" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="hv-shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="14" stdDeviation="24" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="340" rx="22" fill="url(#hv-bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="339" rx="21.5" stroke="#262C42" stroke-opacity="0.85"/>
+
+  <rect width="1200" height="340" rx="22" fill="url(#hv-glow-a)"/>
+  <rect width="1200" height="340" rx="22" fill="url(#hv-glow-b)"/>
+
+  <rect x="104" y="112" width="96" height="96" rx="26" fill="url(#hv-brand)"/>
+  <path d="M156 120 L116 168 H152 L148 200 L188 152 H152 L156 120 Z" fill="#FFFFFF" fill-opacity="0.95"/>
+
+  <text x="238" y="162" font-family="Segoe UI, Arial, sans-serif" font-size="64" font-weight="800" letter-spacing="0.5" fill="url(#hv-wordmark)">HighVibe</text>
+  <text x="242" y="200" font-family="Segoe UI, Arial, sans-serif" font-size="23" fill="#A8B2CE">Describe it. Generate it. Ship it.</text>
+
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#C9D2EA">
+    <rect x="240" y="240" width="152" height="38" rx="19" fill="#FFFFFF" fill-opacity="0.05" stroke="#343B55"/>
+    <text x="316" y="264" text-anchor="middle">Spring Boot 4</text>
+    <rect x="404" y="240" width="96" height="38" rx="19" fill="#FFFFFF" fill-opacity="0.05" stroke="#343B55"/>
+    <text x="452" y="264" text-anchor="middle">Java 21</text>
+    <rect x="512" y="240" width="122" height="38" rx="19" fill="#FFFFFF" fill-opacity="0.05" stroke="#343B55"/>
+    <text x="573" y="264" text-anchor="middle">PostgreSQL</text>
+    <rect x="646" y="240" width="140" height="38" rx="19" fill="#FFFFFF" fill-opacity="0.05" stroke="#343B55"/>
+    <text x="716" y="264" text-anchor="middle">JWT + BCrypt</text>
+    <rect x="798" y="240" width="108" height="38" rx="19" fill="#FFFFFF" fill-opacity="0.05" stroke="#343B55"/>
+    <text x="852" y="264" text-anchor="middle">REST API</text>
+  </g>
+
+  <g filter="url(#hv-shadow)">
+    <rect x="806" y="84" width="286" height="172" rx="16" fill="#171C2E" stroke="#2A3150" transform="rotate(-4 949 170)" opacity="0.8"/>
+    <rect x="770" y="104" width="310" height="182" rx="16" fill="#10141F" stroke="#333B5A"/>
+  </g>
+  <circle cx="794" cy="126" r="5" fill="#F87171"/>
+  <circle cx="812" cy="126" r="5" fill="#FBBF24"/>
+  <circle cx="830" cy="126" r="5" fill="#34D399"/>
+  <rect x="792" y="150" width="176" height="10" rx="5" fill="#4F5BD5" opacity="0.65"/>
+  <rect x="792" y="170" width="238" height="10" rx="5" fill="#8B5CF6" opacity="0.45"/>
+  <rect x="792" y="190" width="132" height="10" rx="5" fill="#22D3EE" opacity="0.5"/>
+  <rect x="792" y="222" width="240" height="40" rx="12" fill="url(#hv-strip)" opacity="0.92"/>
+  <text x="912" y="247" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#FFFFFF">Live Preview</text>
+
+  <path transform="translate(735 96)" d="M0 -12 C1.5 -4 4 -1.5 12 0 C4 1.5 1.5 4 0 12 C-1.5 4 -4 1.5 -12 0 C-4 -1.5 -1.5 -4 0 -12 Z" fill="#8B5CF6" opacity="0.9"/>
+  <path transform="translate(1108 128) scale(0.8)" d="M0 -12 C1.5 -4 4 -1.5 12 0 C4 1.5 1.5 4 0 12 C-1.5 4 -4 1.5 -12 0 C-4 -1.5 -1.5 -4 0 -12 Z" fill="#22D3EE" opacity="0.8"/>
+  <path transform="translate(1092 264) scale(0.6)" d="M0 -12 C1.5 -4 4 -1.5 12 0 C4 1.5 1.5 4 0 12 C-1.5 4 -4 1.5 -12 0 C-4 -1.5 -1.5 -4 0 -12 Z" fill="#C4B5FD" opacity="0.7"/>
+</svg>

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.springproject.lovable_clone.dto.project.FileContentResponse;
 import com.springproject.lovable_clone.dto.project.FileNode;
 import com.springproject.lovable_clone.dto.project.FileTreeResponse;
+import com.springproject.lovable_clone.security.AuthUtil;
 import com.springproject.lovable_clone.service.FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +20,12 @@ import java.util.List;
 @RequestMapping("/api/projects/{projectId}/files")
 public class FileController {
     private final FileService fileService;
+    private final AuthUtil authUtil;
 
     @GetMapping
     public ResponseEntity<List<FileNode>> getFileTree(@PathVariable Long projectId)
     {
-        Long userId = 1l;
+        Long userId = authUtil.getCurrentUserId();
         return ResponseEntity.ok(fileService.getFileTree(projectId,userId));
 
     }
@@ -32,7 +34,7 @@ public class FileController {
             @PathVariable long projectId,
             @PathVariable String path
     ){
-        Long userId = 1l;
+        Long userId = authUtil.getCurrentUserId();
         return ResponseEntity.ok(fileService.getFileContent(projectId,path,userId));
     }
 }
