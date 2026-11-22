@@ -1,0 +1,12 @@
+# Test configuration: no config server, no service registry.
+spring:
+  application:
+    name: account-service
+  cloud:
+    config:
+      enabled: false
+eureka:
+  client:
+    enabled: false
+jwt:
+  secret-key: highvibe-test-secret-0123456789-0123456789-0123456789
