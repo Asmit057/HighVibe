@@ -1,2 +1,3 @@
 com.springproject.lovable_clone.common.security.SharedSecurityAutoConfiguration
 com.springproject.lovable_clone.common.error.SharedExceptionAutoConfiguration
+com.springproject.lovable_clone.common.feign.SharedFeignAutoConfiguration
