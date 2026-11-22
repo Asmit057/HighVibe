@@ -1,0 +1,72 @@
+# Production overrides for a single server (see docs/DEPLOYMENT.md):
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile apps up -d --build
+#
+# Only the website (port 80) and the live-preview ports (5200-5210) are reachable from outside.
+# Databases, Kafka, Redis, MinIO, Eureka, the config server and the gateway stay on the
+# private Docker network. Values come from .env (PUBLIC_HOST, JWT_SECRET_KEY, DB_PASSWORD, ...).
+
+x-prod: &prod
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+x-prod-env: &prod-env
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env}
+  DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+  MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?set MINIO_SECRET_KEY in .env}
+  FRONTEND_URL: http://${PUBLIC_HOST:?set PUBLIC_HOST in .env}
+
+services:
+  postgres:
+    <<: *prod
+    ports: !reset []
+  kafka:
+    <<: *prod
+    ports: !reset []
+    environment:
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
+  redis:
+    <<: *prod
+    ports: !reset []
+  minio:
+    <<: *prod
+    ports: !reset []
+
+  discovery-service:
+    <<: *prod
+    ports: !reset []
+    environment:
+      JAVA_OPTS: "-Xms64m -Xmx256m"
+  config-service:
+    <<: *prod
+    ports: !reset []
+    environment:
+      <<: *prod-env
+      JAVA_OPTS: "-Xms64m -Xmx256m"
+  account-service:
+    <<: *prod
+    environment:
+      <<: *prod-env
+      JAVA_OPTS: "-Xms128m -Xmx384m"
+  workspace-service:
+    <<: *prod
+    environment:
+      <<: *prod-env
+      PREVIEW_PUBLIC_HOST: ${PUBLIC_HOST}
+      JAVA_OPTS: "-Xms128m -Xmx512m"
+  intelligence-service:
+    <<: *prod
+    environment:
+      <<: *prod-env
+      JAVA_OPTS: "-Xms128m -Xmx384m"
+  api-gateway:
+    <<: *prod
+    ports: !reset []
+    environment:
+      <<: *prod-env
+      JAVA_OPTS: "-Xms128m -Xmx384m"
+  frontend:
+    <<: *prod
+    ports: !override ["80:80"]

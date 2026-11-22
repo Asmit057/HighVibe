@@ -4,16 +4,37 @@
 #   docker compose --profile apps up -d  # ...plus every HighVibe service in containers
 #
 # For day-to-day development run the infrastructure here and the services with
-# scripts/start-services.ps1 (or ./scripts/start-services.sh).
+# scripts/start-services.ps1. For a server, add docker-compose.prod.yml (see docs/DEPLOYMENT.md).
 
 name: highvibe
+
+# environment shared by every HighVibe service
+x-service-env: &service-env
+  EUREKA_URL: http://discovery-service:8761/eureka
+  EUREKA_PREFER_IP: "true"
+  CONFIG_SERVER_URL: http://config-service:8888
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:-highvibe-local-dev-secret-change-me-0123456789abcdef}
+  KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+  ACCOUNT_DB_URL: jdbc:postgresql://postgres:5432/account_db
+  WORKSPACE_DB_URL: jdbc:postgresql://postgres:5432/workspace_db
+  INTELLIGENCE_DB_URL: jdbc:postgresql://postgres:5432/intelligence_db
+  DB_PASSWORD: ${DB_PASSWORD:-highvibe}
+  REDIS_HOST: redis
+  MINIO_URL: http://minio:9000
+  MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-highvibe-secret}
+  AI_PROVIDER: ${AI_PROVIDER:-auto}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+  FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
 
 services:
   postgres:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: highvibe
-      POSTGRES_PASSWORD: highvibe
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-highvibe}
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
@@ -62,7 +83,7 @@ services:
     image: bitnamilegacy/minio:latest
     environment:
       MINIO_ROOT_USER: highvibe
-      MINIO_ROOT_PASSWORD: highvibe-secret
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-highvibe-secret}
     ports:
       - "9000:9000"   # S3 API (this image has no web console)
     volumes:
@@ -84,24 +105,7 @@ services:
     profiles: ["apps"]
     build: { context: ./backend, dockerfile: Dockerfile, args: { MODULE: config-service } }
     ports: ["8888:8888"]
-    environment: &service-env
-      EUREKA_URL: http://discovery-service:8761/eureka
-      EUREKA_PREFER_IP: "true"
-      CONFIG_SERVER_URL: http://config-service:8888
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-highvibe-local-dev-secret-change-me-0123456789abcdef}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      ACCOUNT_DB_URL: jdbc:postgresql://postgres:5432/account_db
-      WORKSPACE_DB_URL: jdbc:postgresql://postgres:5432/workspace_db
-      INTELLIGENCE_DB_URL: jdbc:postgresql://postgres:5432/intelligence_db
-      REDIS_HOST: redis
-      MINIO_URL: http://minio:9000
-      AI_PROVIDER: ${AI_PROVIDER:-auto}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
-      PREVIEW_HOST: 0.0.0.0
+    environment: *service-env
     depends_on: [discovery-service]
 
   account-service:
@@ -115,8 +119,14 @@ services:
   workspace-service:
     profiles: ["apps"]
     build: { context: ./backend, dockerfile: Dockerfile, args: { MODULE: workspace-service, WITH_NODE: "true" } }
-    environment: *service-env
-    ports: ["5200-5210:5200-5210"]   # local-mode live previews
+    environment:
+      <<: *service-env
+      # live previews run inside this container on the published port range below
+      PREVIEW_HOST: 0.0.0.0
+      PREVIEW_PUBLIC_HOST: ${PREVIEW_PUBLIC_HOST:-}
+      PREVIEW_PORT_START: "5200"
+      PREVIEW_PORT_END: "5210"
+    ports: ["5200-5210:5200-5210"]
     depends_on:
       postgres: { condition: service_healthy }
       kafka: { condition: service_healthy }
