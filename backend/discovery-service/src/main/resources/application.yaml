@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: discovery-service
+
+server:
+  port: ${PORT:8761}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    # single-node registry: do not stop evicting instances when few heartbeats arrive
+    enable-self-preservation: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

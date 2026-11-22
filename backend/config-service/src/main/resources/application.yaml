@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: config-service
+  profiles:
+    # "native" serves the YAML files under config/ (packaged in this jar, or CONFIG_SEARCH_LOCATIONS).
+    # No git repository or access token is needed.
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: ${CONFIG_SEARCH_LOCATIONS:classpath:/config}
+
+server:
+  port: ${PORT:8888}
+
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:true}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    config:
+      enabled: false

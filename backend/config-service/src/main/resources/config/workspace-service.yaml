@@ -1,0 +1,42 @@
+server:
+  port: ${PORT:9020}
+
+spring:
+  datasource:
+    url: ${WORKSPACE_DB_URL:jdbc:postgresql://localhost:5432/workspace_db?connectTimeout=30&socketTimeout=0}
+    username: ${DB_USERNAME:highvibe}
+    password: ${DB_PASSWORD:highvibe}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+  kafka:
+    consumer:
+      group-id: workspace-group
+
+minio:
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:highvibe}
+  secret-key: ${MINIO_SECRET_KEY:highvibe-secret}
+  project-bucket: ${MINIO_PROJECT_BUCKET:projects}
+
+app:
+  preview:
+    # local      = run "npm run dev" on this machine for each preview (needs Node.js)
+    # kubernetes = claim a pod from the runner pool (see k8s/)
+    mode: ${PREVIEW_MODE:local}
+    ttl: ${PREVIEW_TTL:60m}
+    local:
+      root: ${PREVIEW_ROOT:./runtime/previews}
+      host: ${PREVIEW_HOST:127.0.0.1}
+      public-host: ${PREVIEW_PUBLIC_HOST:}
+      port-range-start: ${PREVIEW_PORT_START:5200}
+      port-range-end: ${PREVIEW_PORT_END:5299}
+    kubernetes:
+      namespace: ${PREVIEW_NAMESPACE:lovable-previews}
+      domain: ${PREVIEW_DOMAIN:app.localhost}
+      proxy-port: ${PREVIEW_PROXY_PORT:80}

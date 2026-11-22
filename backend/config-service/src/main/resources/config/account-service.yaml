@@ -1,0 +1,21 @@
+server:
+  port: ${PORT:9010}
+
+spring:
+  datasource:
+    url: ${ACCOUNT_DB_URL:jdbc:postgresql://localhost:5432/account_db?connectTimeout=30&socketTimeout=0}
+    username: ${DB_USERNAME:highvibe}
+    password: ${DB_PASSWORD:highvibe}
+
+app:
+  auth:
+    access-token-ttl: ${JWT_ACCESS_TTL:30m}
+    refresh-token-ttl: ${JWT_REFRESH_TTL:30d}
+  billing:
+    stripe-secret-key: ${STRIPE_SECRET_KEY:}
+    stripe-webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+    # Without a Stripe key, checkout activates the chosen plan immediately (local development only).
+    mock-mode: ${BILLING_MOCK_MODE:true}
+    stripe-price-ids:
+      Pro: ${STRIPE_PRICE_PRO:}
+      Business: ${STRIPE_PRICE_BUSINESS:}
