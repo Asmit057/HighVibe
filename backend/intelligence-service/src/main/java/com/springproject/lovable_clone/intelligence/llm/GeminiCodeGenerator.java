@@ -2,6 +2,7 @@ package com.springproject.lovable_clone.intelligence.llm;
 
 import com.springproject.lovable_clone.intelligence.config.AiProperties;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
  * The current project files are placed in the prompt, and the reply uses the tag protocol of
  * PromptUtils, which LlmResponseParser turns into chat events.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GeminiCodeGenerator implements CodeGenerator {
@@ -91,15 +93,32 @@ public class GeminiCodeGenerator implements CodeGenerator {
             }
         }
 
-        if ("MAX_TOKENS".equals(state.finishReason)) {
-            emit(fullText, onDelta, "\n<message phase=\"completed\">The reply hit the output limit. "
-                    + "Ask me to continue and I will finish the remaining files.</message>");
-        } else if (state.finishReason != null && !"STOP".equals(state.finishReason)) {
-            emit(fullText, onDelta, "\n<message phase=\"completed\">Gemini stopped early (" + state.finishReason
-                    + "). Try rephrasing the request.</message>");
+        String note = closingNote(state.finishReason);
+        if (note != null) {
+            if (state.finishReason == null) {
+                log.warn("Gemini stream for project {} ended without a finish reason after {} chunks ({} characters)",
+                        request.projectId(), state.chunks, fullText.length());
+            }
+            emit(fullText, onDelta, "\n<message phase=\"completed\">" + note + "</message>");
         }
         long output = Math.max(0, state.totalTokens - state.promptTokens);
         return new GenerationResult(fullText.toString(), state.promptTokens, output, gemini.model());
+    }
+
+    /**
+     * The note shown after a reply that did not end normally, or null when Gemini finished on its own.
+     * A stream that closes without any finish reason was cut off, and its unfinished file is not saved.
+     */
+    static String closingNote(String finishReason) {
+        if (finishReason == null) {
+            return "The connection to Gemini closed before the answer was complete, so unfinished files were not saved. "
+                    + "Send the request again.";
+        }
+        return switch (finishReason) {
+            case "STOP" -> null;
+            case "MAX_TOKENS" -> "The reply hit the output limit. Ask me to continue and I will finish the remaining files.";
+            default -> "Gemini stopped early (" + finishReason + "). Try rephrasing the request.";
+        };
     }
 
     /** Builds the generateContent request: system instruction, alternating turns, output limit. */

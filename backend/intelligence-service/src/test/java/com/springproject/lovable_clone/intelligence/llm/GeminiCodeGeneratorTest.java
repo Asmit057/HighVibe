@@ -1,5 +1,6 @@
 package com.springproject.lovable_clone.intelligence.llm;
 
+import com.springproject.lovable_clone.common.enums.ChatEventType;
 import com.springproject.lovable_clone.intelligence.config.AiProperties;
 import com.springproject.lovable_clone.intelligence.llm.CodeGenerator.GenerationRequest;
 import com.springproject.lovable_clone.intelligence.llm.CodeGenerator.HistoryTurn;
@@ -54,6 +55,26 @@ class GeminiCodeGeneratorTest {
         assertThat(state.finishReason).isEqualTo("STOP");
         assertThat(state.promptTokens).isEqualTo(1200);
         assertThat(state.totalTokens).isEqualTo(1300);
+    }
+
+    @Test
+    void unfinishedRepliesGetANote() {
+        assertThat(GeminiCodeGenerator.closingNote("STOP")).isNull();
+        assertThat(GeminiCodeGenerator.closingNote(null)).contains("closed before the answer was complete");
+        assertThat(GeminiCodeGenerator.closingNote("MAX_TOKENS")).contains("output limit");
+        assertThat(GeminiCodeGenerator.closingNote("SAFETY")).contains("stopped early (SAFETY)");
+    }
+
+    @Test
+    void cutOffFileIsDroppedButTheNoteIsShown() {
+        String cutOff = "<message phase=\"planning\">I will build it.</message>\n<file path=\"src/App.tsx\">import React"
+                + "\n<message phase=\"completed\">" + GeminiCodeGenerator.closingNote(null) + "</message>";
+
+        var events = new LlmResponseParser().parse(cutOff);
+
+        assertThat(events).extracting(LlmResponseParser.ParsedEvent::type)
+                .containsExactly(ChatEventType.MESSAGE, ChatEventType.MESSAGE);
+        assertThat(events.get(1).content()).contains("Send the request again");
     }
 
     @Test
