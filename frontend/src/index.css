@@ -1,16 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --color-ink-950: #07080d;
-  --color-ink-900: #0d0f17;
-  --color-ink-800: #151824;
-  --color-ink-700: #1f2333;
-  --color-ink-600: #2c3146;
+  --color-ink-950: #06070c;
+  --color-ink-900: #0c0e16;
+  --color-ink-800: #141724;
+  --color-ink-700: #1e2234;
+  --color-ink-600: #2b3048;
   --color-brand: #8b5cf6;
   --color-brand-2: #f43f5e;
+  --color-brand-3: #38bdf8;
 }
 
 html, body, #root {
@@ -23,28 +24,151 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.hv-glow {
-  background:
-    radial-gradient(60rem 30rem at 50% -10%, rgba(139, 92, 246, 0.35), transparent 60%),
-    radial-gradient(40rem 25rem at 85% 20%, rgba(244, 63, 94, 0.18), transparent 60%),
-    radial-gradient(40rem 25rem at 10% 30%, rgba(56, 189, 248, 0.12), transparent 60%);
+::selection {
+  background: rgba(139, 92, 246, 0.45);
 }
 
+/* ------------------------------------------------------------------ backgrounds */
+
+/* slow-moving colour blobs behind hero sections */
+.hv-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hv-aurora::before,
+.hv-aurora::after {
+  content: "";
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.45;
+  animation: hv-drift 22s ease-in-out infinite alternate;
+}
+.hv-aurora::before {
+  top: -30vmax;
+  left: -10vmax;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.9), transparent 60%);
+}
+.hv-aurora::after {
+  top: -20vmax;
+  right: -20vmax;
+  background: radial-gradient(circle, rgba(244, 63, 94, 0.55), transparent 60%);
+  animation-delay: -11s;
+}
+@keyframes hv-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(6vmax, 4vmax, 0) scale(1.15); }
+}
+
+/* faint grid that fades out towards the bottom */
+.hv-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at top, black 30%, transparent 75%);
+}
+
+.hv-glow {
+  background:
+    radial-gradient(60rem 30rem at 50% -10%, rgba(139, 92, 246, 0.28), transparent 60%),
+    radial-gradient(40rem 25rem at 85% 20%, rgba(244, 63, 94, 0.14), transparent 60%);
+}
+
+/* ------------------------------------------------------------------ text and surfaces */
+
 .hv-gradient-text {
-  background: linear-gradient(90deg, #c4b5fd, #f9a8d4, #fda4af);
+  background: linear-gradient(90deg, #c4b5fd, #f0abfc 45%, #fda4af);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-.hv-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
-.hv-scroll::-webkit-scrollbar-thumb { background: #2c3146; border-radius: 8px; }
-.hv-scroll::-webkit-scrollbar-track { background: transparent; }
+.hv-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  backdrop-filter: blur(12px);
+}
+
+/* animated gradient border (used on the prompt box and the highlighted plan) */
+.hv-gradient-border {
+  position: relative;
+  isolation: isolate;
+  border-radius: 1.25rem;
+  background: var(--color-ink-900);
+}
+.hv-gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(120deg, #8b5cf6, #f43f5e, #38bdf8, #8b5cf6);
+  background-size: 300% 300%;
+  animation: hv-border 8s linear infinite;
+}
+@keyframes hv-border {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 300% 50%; }
+}
+
+/* ------------------------------------------------------------------ motion */
+
+.hv-fade-up {
+  animation: hv-fade-up 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes hv-fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+.hv-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: hv-shimmer 1.4s linear infinite;
+}
+@keyframes hv-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
 
 @keyframes hv-pulse-dot {
-  0%, 80%, 100% { opacity: 0.25; }
-  40% { opacity: 1; }
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-2px); }
 }
 .hv-dot { animation: hv-pulse-dot 1.2s infinite; }
 .hv-dot:nth-child(2) { animation-delay: 0.2s; }
 .hv-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.hv-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  background: #c4b5fd;
+  animation: hv-blink 1s steps(1) infinite;
+}
+@keyframes hv-blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hv-aurora::before, .hv-aurora::after, .hv-gradient-border::before, .hv-fade-up, .hv-shimmer, .hv-dot, .hv-caret {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ scrollbars */
+
+.hv-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.hv-scroll::-webkit-scrollbar-thumb { background: #2b3048; border-radius: 8px; }
+.hv-scroll::-webkit-scrollbar-track { background: transparent; }

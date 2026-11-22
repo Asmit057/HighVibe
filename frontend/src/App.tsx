@@ -4,6 +4,7 @@ import { useAuth } from './lib/auth'
 import AuthPage from './pages/AuthPage'
 import BillingPage from './pages/BillingPage'
 import HomePage from './pages/HomePage'
+import LandingPage from './pages/LandingPage'
 import WorkspacePage from './pages/WorkspacePage'
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -14,9 +15,10 @@ function RequireAuth({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
+  const { user } = useAuth()
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={user ? <HomePage /> : <LandingPage />} />
       <Route path="/login" element={<AuthPage mode="login" />} />
       <Route path="/signup" element={<AuthPage mode="signup" />} />
       <Route path="/projects/:projectId" element={<RequireAuth><WorkspacePage /></RequireAuth>} />

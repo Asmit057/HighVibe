@@ -1,5 +1,5 @@
-import { ArrowLeft, Code2, Download, Eye, Users } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowLeft, Code2, Download, Eye, MessageSquare, Users } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import ChatPanel from '../components/ChatPanel'
 import CodePanel from '../components/CodePanel'
@@ -11,7 +11,53 @@ import { useAuth } from '../lib/auth'
 import { streamChat } from '../lib/stream'
 import type { ChatMessage, FileNode, Preview, Project } from '../lib/types'
 
-type Tab = 'preview' | 'code'
+type Tab = 'chat' | 'preview' | 'code'
+
+const TABS = {
+  chat: { label: 'Chat', icon: MessageSquare },
+  preview: { label: 'Preview', icon: Eye },
+  code: { label: 'Code', icon: Code2 },
+} as const
+
+const CHAT_WIDTH_KEY = 'highvibe.chatWidth'
+const NARROW_QUERY = '(max-width: 767px)'
+
+/** True on phone-sized screens, where chat, preview and code share one pane. */
+function useNarrow() {
+  const [narrow, setNarrow] = useState(() => window.matchMedia(NARROW_QUERY).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(NARROW_QUERY)
+    const update = () => setNarrow(mq.matches)
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+  return narrow
+}
+
+/** Width of the chat column, draggable and remembered in this browser. */
+function useChatWidth() {
+  const [width, setWidth] = useState(() => {
+    try { return Number(localStorage.getItem(CHAT_WIDTH_KEY)) || 420 } catch { return 420 }
+  })
+  const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    const move = (ev: PointerEvent) => setWidth(Math.min(Math.max(ev.clientX, 320), window.innerWidth * 0.6))
+    const up = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+  useEffect(() => {
+    try { localStorage.setItem(CHAT_WIDTH_KEY, String(Math.round(width))) } catch { /* ignore */ }
+  }, [width])
+  return { width, startDrag }
+}
 
 export default function WorkspacePage() {
   const { projectId: idParam } = useParams()
@@ -24,7 +70,8 @@ export default function WorkspacePage() {
   const [files, setFiles] = useState<FileNode[]>([])
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [preview, setPreview] = useState<Preview | null>(null)
-  const [tab, setTab] = useState<Tab>('preview')
+  const narrow = useNarrow()
+  const [tab, setTab] = useState<Tab>(() => (window.matchMedia(NARROW_QUERY).matches ? 'chat' : 'preview'))
   const [streamingText, setStreamingText] = useState<string | null>(null)
   const [pendingPrompt, setPendingPrompt] = useState<string | null>(null)
   const [chatError, setChatError] = useState<string | null>(null)
@@ -33,9 +80,13 @@ export default function WorkspacePage() {
   const [reloadKey, setReloadKey] = useState(0)
   const [codeRefreshKey, setCodeRefreshKey] = useState(0)
 
+  const { width: chatWidth, startDrag } = useChatWidth()
+  const userInitials = user?.name?.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase() ?? 'ME'
   const abortRef = useRef<AbortController | null>(null)
   const initialPromptSent = useRef(false)
   const canEdit = project?.role === 'OWNER' || project?.role === 'EDITOR'
+  const tabs: Tab[] = narrow ? ['chat', 'preview', 'code'] : ['preview', 'code']
+  const active: Tab = !narrow && tab === 'chat' ? 'preview' : tab
 
   const loadFiles = useCallback(async () => {
     const tree = await api<{ files: FileNode[] }>(`/api/projects/${projectId}/files`)
@@ -166,44 +217,60 @@ export default function WorkspacePage() {
 
   return (
     <div className="flex h-full flex-col bg-ink-950">
-      <header className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5">
-        <Link to="/" aria-label="Back to projects" className="rounded p-1.5 text-zinc-400 hover:bg-white/10 hover:text-white"><ArrowLeft className="h-4 w-4" /></Link>
-        <Logo compact />
-        <h1 className="truncate font-medium">{project?.name ?? 'Loading...'}</h1>
-        {project?.role && project.role !== 'OWNER' && <span className="rounded bg-white/10 px-1.5 py-0.5 text-xs text-zinc-400">{project.role.toLowerCase()}</span>}
+      <header className="flex items-center gap-2 border-b border-white/10 bg-ink-900/60 px-2 py-2.5 backdrop-blur sm:gap-3 sm:px-4">
+        <Link to="/" aria-label="Back to projects" className="shrink-0 rounded p-1.5 text-zinc-400 hover:bg-white/10 hover:text-white"><ArrowLeft className="h-4 w-4" /></Link>
+        <span className="hidden sm:block"><Logo compact /></span>
+        <div className="min-w-0 flex-1 md:flex-none">
+          <h1 className="truncate text-sm font-semibold">{project?.name ?? 'Loading...'}</h1>
+          <p className="hidden items-center gap-1.5 text-[11px] text-zinc-500 sm:flex">
+            <span className={`h-1.5 w-1.5 rounded-full ${streamingText !== null ? 'animate-pulse bg-violet-400' : preview?.status === 'RUNNING' ? 'bg-emerald-400' : 'bg-zinc-600'}`} aria-hidden="true" />
+            {streamingText !== null ? 'AI is writing code...' : preview?.status === 'RUNNING' ? 'Preview live' : 'Preview offline'}
+          </p>
+        </div>
+        {project?.role && project.role !== 'OWNER' && <span className="hidden rounded bg-white/10 px-1.5 py-0.5 text-xs text-zinc-400 sm:inline">{project.role.toLowerCase()}</span>}
 
-        <div className="mx-auto flex rounded-lg bg-white/5 p-0.5 text-sm" role="tablist">
-          {(['preview', 'code'] as const).map((t) => (
-            <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-              className={`flex items-center gap-1.5 rounded-md px-3 py-1 ${tab === t ? 'bg-white/10 text-white' : 'text-zinc-400 hover:text-white'}`}>
-              {t === 'preview' ? <Eye className="h-4 w-4" aria-hidden="true" /> : <Code2 className="h-4 w-4" aria-hidden="true" />}
-              {t === 'preview' ? 'Preview' : 'Code'}
-            </button>
-          ))}
+        <div className="flex shrink-0 rounded-xl border border-white/10 bg-white/5 p-1 text-sm md:mx-auto" role="tablist">
+          {tabs.map((t) => {
+            const { label, icon: Icon } = TABS[t]
+            return (
+              <button key={t} role="tab" aria-selected={active === t} aria-label={label} onClick={() => setTab(t)}
+                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 transition sm:px-3.5 ${active === t ? 'bg-white text-ink-950 shadow' : 'text-zinc-400 hover:text-white'}`}>
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            )
+          })}
         </div>
 
-        <button onClick={download} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-zinc-300 hover:bg-white/10">
+        <button onClick={download} aria-label="Download code" className="flex shrink-0 items-center gap-1.5 rounded-lg p-1.5 text-sm text-zinc-300 hover:bg-white/10 md:px-3">
           <Download className="h-4 w-4" aria-hidden="true" /> <span className="hidden md:inline">Download</span>
         </button>
-        <button onClick={() => setShowMembers(true)} className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-ink-950">
-          <Users className="h-4 w-4" aria-hidden="true" /> Share
+        <button onClick={() => setShowMembers(true)} aria-label="Share project" className="flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-brand to-brand-2 p-2 text-sm font-semibold text-white shadow-lg shadow-brand/20 transition hover:brightness-110 sm:px-4 sm:py-1.5">
+          <Users className="h-4 w-4" aria-hidden="true" /> <span className="hidden sm:inline">Share</span>
         </button>
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <aside className="w-full max-w-[420px] min-w-[320px] border-r border-white/10">
+        <aside className={narrow && active !== 'chat' ? 'hidden' : 'min-w-0 shrink-0'} style={{ width: narrow ? '100%' : chatWidth }}>
           <ChatPanel
             messages={messages}
             streamingText={streamingText}
             pendingPrompt={pendingPrompt}
             error={chatError}
             canEdit={canEdit}
+            userInitials={userInitials}
             onSend={send}
             onStop={stopStream}
           />
         </aside>
-        <section className="min-w-0 flex-1">
-          {tab === 'preview' ? (
+        {!narrow && (
+          <div role="separator" aria-orientation="vertical" aria-label="Resize chat" onPointerDown={startDrag}
+            className="group relative w-px shrink-0 cursor-col-resize bg-white/10">
+            <span className="absolute inset-y-0 -right-1.5 -left-1.5 transition group-hover:bg-violet-500/30" />
+          </div>
+        )}
+        <section className={narrow && active === 'chat' ? 'hidden' : 'min-w-0 flex-1'}>
+          {active === 'preview' ? (
             <PreviewPanel preview={preview} reloadKey={reloadKey} onStart={startPreview} onStop={stopPreview} onReload={() => setReloadKey((k) => k + 1)} />
           ) : (
             <CodePanel projectId={projectId} files={files} canEdit={canEdit} refreshKey={codeRefreshKey} />

@@ -1,5 +1,5 @@
 import { File, Folder, Loader2, Save } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import type { FileNode } from '../lib/types'
 
@@ -15,6 +15,15 @@ interface TreeRow {
   name: string
   path: string
   isFile: boolean
+}
+
+const EXTENSION_COLOURS: Record<string, string> = {
+  tsx: 'text-sky-400', ts: 'text-sky-400', jsx: 'text-amber-300', js: 'text-amber-300',
+  css: 'text-fuchsia-400', html: 'text-orange-400', json: 'text-emerald-400', md: 'text-zinc-300',
+}
+
+function colourFor(name: string) {
+  return EXTENSION_COLOURS[name.split('.').pop() ?? ''] ?? 'text-zinc-400'
 }
 
 function buildRows(files: FileNode[]): TreeRow[] {
@@ -40,6 +49,8 @@ export default function CodePanel({ projectId, files, canEdit, refreshKey }: Cod
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const gutter = useRef<HTMLDivElement>(null)
+  const lineCount = useMemo(() => content.split('\n').length, [content])
 
   useEffect(() => {
     if (!selected && files.length) {
@@ -80,12 +91,13 @@ export default function CodePanel({ projectId, files, canEdit, refreshKey }: Cod
   const dirty = content !== original
   return (
     <div className="flex h-full">
-      <nav className="hv-scroll w-60 shrink-0 overflow-y-auto border-r border-white/10 py-2 text-sm" aria-label="Project files">
+      <nav className="hv-scroll w-36 shrink-0 sm:w-60 overflow-y-auto border-r border-white/10 bg-ink-900/40 py-2 text-sm" aria-label="Project files">
+        <p className="px-4 pt-1 pb-2 text-[11px] font-semibold tracking-widest text-zinc-500 uppercase">Files</p>
         {rows.map((row) => (
           <button key={row.path} disabled={!row.isFile} onClick={() => setSelected(row.path)}
             style={{ paddingLeft: 12 + row.depth * 14 }}
             className={`flex w-full items-center gap-1.5 py-1 pr-2 text-left font-mono text-xs ${row.path === selected ? 'bg-violet-500/20 text-white' : 'text-zinc-400 hover:bg-white/5'} disabled:cursor-default disabled:hover:bg-transparent`}>
-            {row.isFile ? <File className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> : <Folder className="h-3.5 w-3.5 shrink-0 text-zinc-500" aria-hidden="true" />}
+            {row.isFile ? <File className={`h-3.5 w-3.5 shrink-0 ${colourFor(row.name)}`} aria-hidden="true" /> : <Folder className="h-3.5 w-3.5 shrink-0 text-violet-300/70" aria-hidden="true" />}
             <span className="truncate">{row.name}</span>
           </button>
         ))}
@@ -105,14 +117,21 @@ export default function CodePanel({ projectId, files, canEdit, refreshKey }: Cod
         {loading ? (
           <div className="grid flex-1 place-items-center"><Loader2 className="h-5 w-5 animate-spin text-zinc-500" /></div>
         ) : (
-          <textarea
-            aria-label={`Contents of ${selected ?? 'file'}`}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            readOnly={!canEdit}
-            spellCheck={false}
-            className="hv-scroll flex-1 resize-none bg-ink-950 p-4 font-mono text-[13px] leading-relaxed text-zinc-200 outline-none"
-          />
+          <div className="flex min-h-0 flex-1 bg-ink-950 font-mono text-[13px] leading-relaxed">
+            <div ref={gutter} aria-hidden="true" className="overflow-hidden border-r border-white/5 py-4 pr-3 pl-4 text-right text-zinc-600 select-none">
+              {Array.from({ length: lineCount }, (_, i) => <div key={i}>{i + 1}</div>)}
+            </div>
+            <textarea
+              aria-label={`Contents of ${selected ?? 'file'}`}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              onScroll={(e) => { if (gutter.current) gutter.current.scrollTop = e.currentTarget.scrollTop }}
+              readOnly={!canEdit}
+              spellCheck={false}
+              wrap="off"
+              className="hv-scroll flex-1 resize-none bg-transparent py-4 pr-4 pl-3 text-zinc-200 outline-none"
+            />
+          </div>
         )}
       </div>
     </div>
