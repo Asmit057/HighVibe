@@ -365,9 +365,14 @@ validation. CI runs both on every push (`.github/workflows/ci.yml`).
 
 ## Deploying
 
+- **Free server (recommended):** [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) walks through an Oracle Cloud
+  Always Free VM (4 CPUs, 24 GB RAM). On the server, one command installs Docker, writes the secrets and
+  starts the whole stack:
+  `curl -fsSL https://raw.githubusercontent.com/Asmit057/HighVibe/main/scripts/deploy.sh | bash`
 - **Containers:** `backend/Dockerfile` builds any service (`--build-arg MODULE=<service>`);
   `frontend/Dockerfile` serves the SPA with nginx and proxies `/api` to the gateway.
-  `docker compose --profile apps up` runs the full stack on one host.
+  `docker compose --profile apps up` runs the full stack on one host; adding `-f docker-compose.prod.yml`
+  keeps everything except the website and the preview ports private.
 - **Kubernetes previews:** apply `k8s/previews/runner-pool.yaml`, build and deploy the proxy in
   `k8s/previews/proxy`, point a wildcard DNS record at it, and run workspace-service with
   `PREVIEW_MODE=kubernetes` and `PREVIEW_DOMAIN=<your preview domain>`.
@@ -385,6 +390,10 @@ validation. CI runs both on every push (`.github/workflows/ci.yml`).
   response examples, how the frontend and backend are connected, the backend concepts (gateway, Eureka,
   config server, JWT + refresh rotation, RBAC, Feign token relay, Kafka saga, SSE, MinIO, Redis, Stripe),
   a 10-minute demo script and common interview questions.
+- [`docs/HighVibe-Frontend-Guide.pdf`](docs/HighVibe-Frontend-Guide.pdf) — how the React app is organised, how it
+  connects to the backend (the `/api` proxy, tokens and silent refresh, SSE streaming, the preview iframe), how the
+  frontend and Docker builds work, and the exact commands that start everything.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — putting HighVibe on a free Oracle Cloud server with one script.
 - [`docs/HighVibe.postman_collection.json`](docs/HighVibe.postman_collection.json) — import into Postman, run
   **Auth › Sign up**, then any request: tokens and ids are captured automatically.
 
@@ -405,11 +414,12 @@ HighVibe
 │   ├── intelligence-service/  chat, Gemini/demo generators, SSE, usage, saga handler
 │   └── Dockerfile             builds any service image
 ├── frontend/                  React app (home, workspace, billing) + nginx Dockerfile
-├── docs/                      project explanation + API guide (PDF), Postman collection
+├── docs/                      project explanation + API guide (PDF), Postman collection, deployment guide
 ├── infra/postgres/            PostgreSQL init script (one database per service)
-├── k8s/previews/          runner pool + wildcard preview proxy
-├── scripts/               start/stop scripts for local development
-└── docker-compose.yml     infrastructure (+ "apps" profile for the full stack)
+├── k8s/previews/              runner pool + wildcard preview proxy
+├── scripts/                   start/stop scripts for local development, deploy.sh for a server
+├── docker-compose.yml         infrastructure (+ "apps" profile for the full stack)
+└── docker-compose.prod.yml    server overrides: private network, restarts, memory limits
 ```
 
 ---
