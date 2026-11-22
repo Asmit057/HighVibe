@@ -1,0 +1,86 @@
+# Warm pool of preview runners used when workspace-service runs with PREVIEW_MODE=kubernetes.
+# workspace-service claims an idle pod (label status=idle -> busy), mirrors the project from
+# MinIO with the "syncer" container and starts Vite in the "runner" container.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lovable-previews
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: runner-pool
+  namespace: lovable-previews
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: runner
+      status: idle
+  template:
+    metadata:
+      labels:
+        app: runner
+        status: idle
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: workspace
+          emptyDir: {}
+      containers:
+        - name: runner
+          image: node:22-alpine
+          workingDir: /app
+          command: ["/bin/sh", "-c", "sleep infinity"]
+          ports:
+            - containerPort: 5173
+          volumeMounts:
+            - name: workspace
+              mountPath: /app
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: 500m, memory: 1Gi }
+        - name: syncer
+          image: minio/mc
+          command: ["/bin/sh", "-c", "sleep infinity"]
+          env:
+            - name: MINIO_USER
+              valueFrom: { secretKeyRef: { name: highvibe-secrets, key: MINIO_ACCESS_KEY } }
+            - name: MINIO_PASS
+              valueFrom: { secretKeyRef: { name: highvibe-secrets, key: MINIO_SECRET_KEY } }
+            - name: MC_HOST_myminio
+              value: "http://$(MINIO_USER):$(MINIO_PASS)@minio.highvibe.svc.cluster.local:9000"
+          volumeMounts:
+            - name: workspace
+              mountPath: /app
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 200m, memory: 256Mi }
+---
+# workspace-service needs to list, label and exec into runner pods
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: preview-orchestrator
+  namespace: lovable-previews
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "patch", "update", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create", "get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: preview-orchestrator
+  namespace: lovable-previews
+subjects:
+  - kind: ServiceAccount
+    name: workspace-service
+    namespace: highvibe
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: preview-orchestrator

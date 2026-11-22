@@ -1,0 +1,57 @@
+# Build and push the image first:  docker build -t <registry>/highvibe-preview-proxy k8s/previews/proxy
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: preview-proxy
+  namespace: highvibe
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: preview-proxy }
+  template:
+    metadata:
+      labels: { app: preview-proxy }
+    spec:
+      containers:
+        - name: proxy
+          image: highvibe-preview-proxy:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REDIS_URL
+              value: redis://redis.highvibe.svc.cluster.local:6379
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: preview-proxy
+  namespace: highvibe
+spec:
+  selector: { app: preview-proxy }
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+# Route every *.<preview-domain> host to the proxy (set PREVIEW_DOMAIN to match)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: preview-proxy
+  namespace: highvibe
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: "*.app.localhost"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: preview-proxy
+                port: { number: 80 }
