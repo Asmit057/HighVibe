@@ -31,3 +31,15 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### HighVibe ###
+# portable JDK used for local builds
+.tools/
+# local preview workspaces (npm installs, dev-server logs)
+runtime/
+# frontend
+node_modules/
+frontend/dist/
+# local secrets
+.env
+*.log
