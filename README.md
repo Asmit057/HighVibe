@@ -383,7 +383,9 @@ validation. CI runs both on every push (`.github/workflows/ci.yml`).
 
 ## API guide and Postman collection
 
-- [`docs/HighVibe-Project-Explained.pdf`](docs/HighVibe-Project-Explained.pdf) — start here: what the project is,
+- [`docs/HighVibe-User-Guide.pdf`](docs/HighVibe-User-Guide.pdf) — for anyone who downloads the ZIP: every feature,
+  installing the tools, running HighVibe with Docker or in developer mode, and every screen and button explained.
+- [`docs/HighVibe-Project-Explained.pdf`](docs/HighVibe-Project-Explained.pdf) — what the project is,
   a user's journey with what happens behind the scenes, every end-to-end flow step by step, what each backend
   API is for and who calls it, and what data is stored where.
 - [`docs/HighVibe-Backend-API-Guide.pdf`](docs/HighVibe-Backend-API-Guide.pdf) — every endpoint with request and
