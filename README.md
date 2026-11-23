@@ -383,6 +383,10 @@ validation. CI runs both on every push (`.github/workflows/ci.yml`).
 
 ## API guide and Postman collection
 
+- [`docs/HighVibe-API-Reference.pdf`](docs/HighVibe-API-Reference.pdf) — all 43 APIs in Swagger style, one card each: what it
+  does, who can call it, how it works inside, and a real recorded request and response (plus real error examples).
+- [`docs/HighVibe-Interview-Guide.pdf`](docs/HighVibe-Interview-Guide.pdf) — microservices, Kafka, Redis, MinIO, PostgreSQL and
+  Docker explained from zero, how each is used in HighVibe, and 40 interview questions with answers.
 - [`docs/HighVibe-User-Guide.pdf`](docs/HighVibe-User-Guide.pdf) — for anyone who downloads the ZIP: every feature,
   installing the tools, running HighVibe with Docker or in developer mode, and every screen and button explained.
 - [`docs/HighVibe-Project-Explained.pdf`](docs/HighVibe-Project-Explained.pdf) — what the project is,
