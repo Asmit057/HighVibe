@@ -14,7 +14,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Issues and verifies HS256 access tokens. Every service shares the same secret, so any
+ * Issues and verifies HMAC-signed access tokens (JJWT picks HS256, HS384 or HS512 from the key length:
+ * HS384 with the 52-byte local default key, HS512 with a 64-byte key). Every service shares the same secret, so any
  * service can authenticate a request without calling account-service.
  */
 public class AuthUtil {

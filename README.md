@@ -248,7 +248,7 @@ All settings live in `backend/config-service/src/main/resources/config/` and rea
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `JWT_SECRET_KEY` | dev value | Shared HS256 key (32+ chars) — **change outside local dev** |
+| `JWT_SECRET_KEY` | dev value | Shared HMAC signing key (32+ chars; HS384 at 48+ bytes, HS512 at 64+) — **change outside local dev** |
 | `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` | `30m` / `30d` | Token lifetimes |
 | `AI_PROVIDER` | `auto` | `gemini`, `demo`, or `auto` (Gemini when a key is set, else demo) |
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | — / `gemini-3.5-flash-lite` | Google Gemini, free tier ([get a key](https://aistudio.google.com/apikey)) |
@@ -338,7 +338,7 @@ curl -N -X POST localhost:8080/api/chat/stream -H "Authorization: Bearer $TOKEN"
 | `DELETE` project | ✓ | — | — |
 | `MANAGE_MEMBERS` invite, re-role, remove | ✓ | — | — |
 
-- Stateless JWT (HS256) with short-lived access tokens and **rotating, hashed refresh tokens**;
+- Stateless HMAC-signed JWT (HS384 with the local key) with short-lived access tokens and **rotating, hashed refresh tokens**;
   replaying a revoked refresh token revokes all of that user's sessions.
 - Malformed, expired or forged tokens leave the request anonymous → clean JSON `401`.
 - Non-members get `404` for a project (existence is not revealed); members without the
