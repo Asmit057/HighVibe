@@ -386,6 +386,8 @@ validation. CI runs both on every push (`.github/workflows/ci.yml`).
 - [`docs/HighVibe-Start-Here.pdf`](docs/HighVibe-Start-Here.pdf) — which guide to read in which order, a 14-day study plan,
   nine debugging labs that stop the code on real requests (breakpoints by file and line), how to see the data with DBeaver,
   Docker Desktop and commands for PostgreSQL, Redis, Kafka and MinIO, and interview answers that point at the code.
+- [`docs/HighVibe-Feature-Tour.pdf`](docs/HighVibe-Feature-Tour.pdf) — every feature of the website as a user, in eleven parts
+  with screenshots: what to click, what you should see, messages and their meaning, a checklist, and which backend part each feature uses.
 - [`docs/HighVibe-Learn-the-Backend.pdf`](docs/HighVibe-Learn-the-Backend.pdf) — the first guide to read if you are new: a 15-step path from
   "what is a backend" to the Kafka saga, each step with something to try on your laptop, the files to open and questions to check yourself.
 - [`docs/HighVibe-Defect-Report.pdf`](docs/HighVibe-Defect-Report.pdf) — 14 open defects found by testing and code review,
