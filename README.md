@@ -385,6 +385,8 @@ validation. CI runs both on every push (`.github/workflows/ci.yml`).
 
 - [`docs/HighVibe-Learn-the-Backend.pdf`](docs/HighVibe-Learn-the-Backend.pdf) — start here if you are new: a 15-step path from
   "what is a backend" to the Kafka saga, each step with something to try on your laptop, the files to open and questions to check yourself.
+- [`docs/HighVibe-Defect-Report.pdf`](docs/HighVibe-Defect-Report.pdf) — 14 open defects found by testing and code review,
+  each with steps to reproduce, the cause, hints to fix and how to verify, ordered from beginner to advanced.
 - [`docs/HighVibe-API-Reference.pdf`](docs/HighVibe-API-Reference.pdf) — all 43 APIs in Swagger style, one card each: what it
   does, who can call it, how it works inside, and a real recorded request and response (plus real error examples).
 - [`docs/HighVibe-Interview-Guide.pdf`](docs/HighVibe-Interview-Guide.pdf) — microservices, Kafka, Redis, MinIO, PostgreSQL and
