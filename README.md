@@ -384,8 +384,8 @@ validation. CI runs both on every push (`.github/workflows/ci.yml`).
 ## API guide and Postman collection
 
 - [`docs/HighVibe-Start-Here.pdf`](docs/HighVibe-Start-Here.pdf) — which guide to read in which order, a 14-day study plan,
-  nine debugging labs that stop the code on real requests (breakpoints by file and line, plus commands to look inside PostgreSQL,
-  Redis, Kafka and MinIO), and interview answers that point at the code.
+  nine debugging labs that stop the code on real requests (breakpoints by file and line), how to see the data with DBeaver,
+  Docker Desktop and commands for PostgreSQL, Redis, Kafka and MinIO, and interview answers that point at the code.
 - [`docs/HighVibe-Learn-the-Backend.pdf`](docs/HighVibe-Learn-the-Backend.pdf) — the first guide to read if you are new: a 15-step path from
   "what is a backend" to the Kafka saga, each step with something to try on your laptop, the files to open and questions to check yourself.
 - [`docs/HighVibe-Defect-Report.pdf`](docs/HighVibe-Defect-Report.pdf) — 14 open defects found by testing and code review,
