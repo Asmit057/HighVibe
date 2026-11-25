@@ -24,6 +24,7 @@ import com.springproject.lovable_clone.intelligence.llm.CodeGenerator.HistoryTur
 import com.springproject.lovable_clone.intelligence.llm.DemoCodeGenerator;
 import com.springproject.lovable_clone.intelligence.llm.GeminiCodeGenerator;
 import com.springproject.lovable_clone.intelligence.llm.LlmResponseParser;
+import com.springproject.lovable_clone.intelligence.llm.PromptUtils;
 import com.springproject.lovable_clone.intelligence.repository.ChatEventRepository;
 import com.springproject.lovable_clone.intelligence.repository.ChatMessageRepository;
 import com.springproject.lovable_clone.intelligence.repository.ChatSessionRepository;
@@ -45,7 +46,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
 
 /**
  * Orchestrates one AI turn:
@@ -62,7 +62,6 @@ import java.util.regex.Pattern;
 public class AiGenerationService {
 
     private static final long SSE_TIMEOUT_MS = 20 * 60 * 1000L;
-    private static final Pattern FILE_BODY = Pattern.compile("(<file\\s+path=\"[^\"]*\"\\s*>)[\\s\\S]*?(</file>)");
 
     private final AiProperties aiProperties;
     private final GeminiCodeGenerator geminiGenerator;
@@ -76,6 +75,7 @@ public class AiGenerationService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final TransactionTemplate tx;
     private final AuthUtil authUtil;
+    private final BuildRepairService buildRepair;
 
     private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
     private final Set<Long> busyProjects = ConcurrentHashMap.newKeySet();
@@ -121,20 +121,22 @@ public class AiGenerationService {
             };
 
             long started = System.currentTimeMillis();
-            GenerationResult result = generator.generate(
-                    new GenerationRequest(projectId, request.message(), Objects.requireNonNull(turn).history(), files,
-                            path -> workspaceClient.getFileContent(projectId, path)),
-                    new CodeGenerator.ReplyListener() {
-                        @Override
-                        public void delta(String text) {
-                            send(emitter, clientGone, StreamEvent.delta(text));
-                        }
+            GenerationRequest generation = new GenerationRequest(projectId, request.message(),
+                    Objects.requireNonNull(turn).history(), files, path -> workspaceClient.getFileContent(projectId, path));
+            CodeGenerator.ReplyListener listener = new CodeGenerator.ReplyListener() {
+                @Override
+                public void delta(String text) {
+                    send(emitter, clientGone, StreamEvent.delta(text));
+                }
 
-                        @Override
-                        public void restart() {
-                            send(emitter, clientGone, StreamEvent.restart());
-                        }
-                    });
+                @Override
+                public void restart() {
+                    send(emitter, clientGone, StreamEvent.restart());
+                }
+            };
+            // test-build the answer before anything is saved, and let the model fix what does not build
+            GenerationResult result = buildRepair.repair(generator, generation,
+                    generator.generate(generation, listener), listener);
             long seconds = Math.max(1, (System.currentTimeMillis() - started) / 1000);
 
             usageService.recordTokens(userId, result.totalTokens());
@@ -223,7 +225,7 @@ public class AiGenerationService {
         if (message.getRole() != MessageRole.ASSISTANT) {
             return message.getContent();
         }
-        return FILE_BODY.matcher(message.getContent()).replaceAll("$1(file written)$2");
+        return PromptUtils.withoutFileBodies(message.getContent());
     }
 
     private static void send(SseEmitter emitter, AtomicBoolean clientGone, StreamEvent event) {

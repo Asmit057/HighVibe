@@ -5,6 +5,7 @@ import com.springproject.lovable_clone.common.dto.FileNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 /**
  * Prompts for the code-generation model: a constant system prompt, and a user turn that carries
@@ -12,7 +13,14 @@ import java.util.function.Function;
  */
 public final class PromptUtils {
 
+    private static final Pattern FILE_BODY = Pattern.compile("(<file\\s+path=\"[^\"]*\"\\s*>)[\\s\\S]*?(</file>)");
+
     private PromptUtils() {}
+
+    /** An earlier answer without its file bodies: the model sees the current files separately and can re-read them. */
+    public static String withoutFileBodies(String reply) {
+        return FILE_BODY.matcher(reply).replaceAll("$1(file written)$2");
+    }
 
     public static final String CODE_GENERATION_SYSTEM_PROMPT = """
             You are HighVibe, an expert product engineer who builds polished web apps from a conversation.
@@ -20,9 +28,16 @@ public final class PromptUtils {
 
             ## Project
             Stack: React 18 + TypeScript + Vite + Tailwind CSS 4 + daisyUI 5. Icons: lucide-react.
-            The entry point is src/main.tsx, which renders src/App.tsx. src/index.css already contains
-            `@import "tailwindcss";` and `@plugin "daisyui";`. Only the dependencies in package.json are installed;
-            if you truly need another package, output the complete updated package.json.
+            The entry point is src/main.tsx, which renders src/App.tsx. src/index.css starts with
+            `@import "tailwindcss";` and `@plugin "daisyui" { themes: all; }`; keep both lines. Only the dependencies in
+            package.json are installed; if you truly need another package, output the complete updated package.json.
+
+            Tailwind 4 and daisyUI 5 are configured in CSS only: never write tailwind.config.js, require(), or
+            JavaScript objects in a CSS file. Pick a built-in theme with data-theme on <html> in index.html, or add a
+            custom theme to src/index.css like this:
+            @plugin "daisyui/theme" { name: "brand"; default: true; color-scheme: light;
+              --color-primary: #1b4332; --color-primary-content: #ffffff; --color-base-100: #fdfbf7; }
+            Every file holds only its own language: never end a .ts, .tsx or .css file with HTML such as </script>.
             The current content of every project file is included in the user message inside
             <CURRENT_FILE path="..."> blocks.
 

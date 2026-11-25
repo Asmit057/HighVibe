@@ -36,6 +36,26 @@ class LlmResponseParserTest {
     }
 
     @Test
+    void strayHtmlClosingTagsAtTheEndOfACodeFileAreRemoved() {
+        // exactly what broke a generated coffee site: a data file that ended with "</script>"
+        String reply = "<file path=\"src/data/coffeeData.ts\">\nexport const BEANS = [\n  { id: 'kenya' }\n];\n</script>\n</file>"
+                + "<file path=\"index.html\">\n<body>\n  <script type=\"module\" src=\"/src/main.tsx\"></script>\n</body>\n</html>\n</file>";
+
+        List<ParsedEvent> events = parser.parse(reply);
+
+        assertThat(events.get(0).content()).isEqualTo("export const BEANS = [\n  { id: 'kenya' }\n];\n");
+        // an HTML file keeps its closing tags
+        assertThat(events.get(1).content()).endsWith("</body>\n</html>\n");
+    }
+
+    @Test
+    void jsxClosingTagsInsideTheCodeAreKept() {
+        String reply = "<file path=\"src/App.tsx\">\nexport default function App() {\n  return (\n    <div>\n      <p>Hi</p>\n    </div>\n  )\n}\n</file>";
+
+        assertThat(parser.parse(reply).getFirst().content()).contains("    </div>\n  )\n}\n");
+    }
+
+    @Test
     void stripsMarkdownFencesAndLeadingSlash() {
         String reply = "<file path=\"/src/a.ts\">\n```ts\nexport const a = 1\n```\n</file>";
 

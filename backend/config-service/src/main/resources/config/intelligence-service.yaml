@@ -13,6 +13,13 @@ spring:
     async:
       # generations stream for minutes; the SSE emitter enforces its own timeout
       request-timeout: -1
+  cloud:
+    openfeign:
+      client:
+        config:
+          workspace-service:
+            # a test build installs dependencies the first time it runs for a package.json
+            read-timeout: 180000
 
 app:
   ai:
@@ -31,3 +38,5 @@ app:
       max-output-tokens: ${GEMINI_MAX_OUTPUT_TOKENS:32768}
       # calls per generation before giving up, across keys and models
       max-attempts: ${GEMINI_MAX_ATTEMPTS:4}
+    # test-build every answer before saving it, and ask the model to fix build errors (0 = off)
+    repair-rounds: ${AI_REPAIR_ROUNDS:2}

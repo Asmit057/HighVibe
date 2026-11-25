@@ -21,6 +21,10 @@ public class LlmResponseParser {
             "<(message|file|tool)(\\s[^>]*)?>([\\s\\S]*?)</\\1>", Pattern.CASE_INSENSITIVE);
     private static final Pattern ATTRIBUTE = Pattern.compile("(path|args|phase)\\s*=\\s*\"([^\"]*)\"");
     private static final Pattern CODE_FENCE = Pattern.compile("^```[a-zA-Z0-9]*\\s*\\n([\\s\\S]*?)\\n?```\\s*$");
+    // files in which a bare HTML closing tag can never be valid code
+    private static final Pattern CODE_FILE = Pattern.compile("(?i).+\\.(tsx?|jsx?|mjs|cjs|css|json)$");
+    // models sometimes end such a file with "</script>" or "</html>", which breaks the build
+    private static final Pattern TRAILING_CLOSING_TAGS = Pattern.compile("(\\s*\\n\\s*</[a-zA-Z][a-zA-Z0-9-]*>)+\\s*$");
 
     public record ParsedEvent(ChatEventType type, String content, String filePath, String metadata) {}
 
@@ -44,7 +48,7 @@ public class LlmResponseParser {
                         continue;
                     }
                     path = path.trim().replaceFirst("^/+", "");
-                    ParsedEvent event = new ParsedEvent(ChatEventType.FILE_EDIT, cleanFileBody(body), path, null);
+                    ParsedEvent event = new ParsedEvent(ChatEventType.FILE_EDIT, cleanFileBody(path, body), path, null);
                     // if a file is emitted twice, the last version wins
                     Integer existing = fileIndex.get(path);
                     if (existing != null) {
@@ -64,12 +68,18 @@ public class LlmResponseParser {
         return events;
     }
 
-    /** Strips a leading newline and an accidental markdown fence around the file body. */
-    static String cleanFileBody(String body) {
+    /**
+     * Strips a leading newline, an accidental markdown fence around the file body, and stray HTML closing tags at
+     * the end of a code file.
+     */
+    static String cleanFileBody(String path, String body) {
         String content = body.startsWith("\r\n") ? body.substring(2) : body.startsWith("\n") ? body.substring(1) : body;
         Matcher fence = CODE_FENCE.matcher(content.trim());
         if (fence.matches()) {
             content = fence.group(1);
+        }
+        if (CODE_FILE.matcher(path).matches()) {
+            content = TRAILING_CLOSING_TAGS.matcher(content).replaceFirst("");
         }
         return content.endsWith("\n") ? content : content + "\n";
     }

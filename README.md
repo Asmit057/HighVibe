@@ -162,6 +162,11 @@ and a rate-limited or rejected key rests while the next one takes over. An overl
 too, and the next model in `GEMINI_FALLBACK_MODELS` answers instead; a resting key or model is tried again
 when its rest is over. Every failed attempt is logged with Google's own error and the key's position, never the key.
 
+**Build check and self-repair.** Before an answer is saved, workspace-service test-builds the project with the
+new files (`vite build` in a separate folder, dependencies installed once per `package.json`). If the build fails,
+the exact error (file, line, message) goes back to the model, its fix replaces the broken files, and the project
+is checked again, up to `AI_REPAIR_ROUNDS` times (default 2). A check that cannot run never blocks an answer.
+
 **Previews.** `PREVIEW_MODE=local` (default) materialises the project under `runtime/previews/<id>`,
 runs `npm install` + `vite` on a free port (5200–5299) and syncs every saved file to disk.
 `PREVIEW_MODE=kubernetes` claims a pod from a warm runner pool, mirrors the project from MinIO,
@@ -257,6 +262,7 @@ All settings live in `backend/config-service/src/main/resources/config/` and rea
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | — / `gemini-3.5-flash-lite` | Google Gemini, free tier ([get a key](https://aistudio.google.com/apikey)) |
 | `GEMINI_API_KEYS` / `GEMINI_MAX_ATTEMPTS` | — / `4` | Extra keys (comma-separated) used in turn and as fallback; calls per generation before giving up |
 | `GEMINI_FALLBACK_MODELS` | `gemini-3.1-flash-lite` | Models used in order while the main model is overloaded or missing (empty = off) |
+| `AI_REPAIR_ROUNDS` | `2` | Times the model may fix a failed test build before the answer is saved (`0` = no build check) |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | — | Stripe billing; without them plan changes apply instantly (`BILLING_MOCK_MODE=true`) |
 | `STRIPE_PRICE_PRO` / `STRIPE_PRICE_BUSINESS` | — | Stripe price ids attached to the plans at startup |
 | `DB_USERNAME` / `DB_PASSWORD` | `highvibe` | PostgreSQL credentials |

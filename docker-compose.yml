@@ -29,6 +29,7 @@ x-service-env: &service-env
   # "-" (not ":-"): an empty value in .env turns fallback off
   GEMINI_FALLBACK_MODELS: ${GEMINI_FALLBACK_MODELS-gemini-3.1-flash-lite}
   GEMINI_MAX_ATTEMPTS: ${GEMINI_MAX_ATTEMPTS:-4}
+  AI_REPAIR_ROUNDS: ${AI_REPAIR_ROUNDS:-2}
   STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
   STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
   FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
