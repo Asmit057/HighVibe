@@ -391,6 +391,9 @@ validation. CI runs both on every push (`.github/workflows/ci.yml`).
 - [`docs/HighVibe-Start-Here.pdf`](docs/HighVibe-Start-Here.pdf) — which guide to read in which order, a 14-day study plan,
   nine debugging labs that stop the code on real requests (breakpoints by file and line), how to see the data with DBeaver,
   Docker Desktop and commands for PostgreSQL, Redis, Kafka and MinIO, and interview answers that point at the code.
+- [`docs/HighVibe-Gemini-Fallback.pdf`](docs/HighVibe-Gemini-Fallback.pdf) — the API key and model fallback feature: how Google
+  reports errors, the four kinds of failure and what HighVibe does, keys in turn and models in order, the retry loop line by line,
+  logs, settings, tests, labs to try it, and how to explain it in an interview.
 - [`docs/HighVibe-Feature-Tour.pdf`](docs/HighVibe-Feature-Tour.pdf) — every feature of the website as a user, in eleven parts
   with screenshots: what to click, what you should see, messages and their meaning, a checklist, and which backend part each feature uses.
 - [`docs/HighVibe-Learn-the-Backend.pdf`](docs/HighVibe-Learn-the-Backend.pdf) — the first guide to read if you are new: a 15-step path from
