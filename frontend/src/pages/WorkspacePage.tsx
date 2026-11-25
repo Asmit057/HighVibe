@@ -150,6 +150,7 @@ export default function WorkspacePage() {
 
     await streamChat(projectId, text, {
       onDelta: (delta) => setStreamingText((prev) => (prev ?? '') + delta),
+      onRestart: () => setStreamingText(''),
       onDone: async () => {
         setStreamingText(null)
         setPendingPrompt(null)

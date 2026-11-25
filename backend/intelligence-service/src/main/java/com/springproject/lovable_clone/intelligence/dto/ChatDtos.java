@@ -52,6 +52,11 @@ public final class ChatDtos {
             return new StreamEvent("delta", text, null, null);
         }
 
+        /** The text streamed so far is discarded; the model starts the answer again. */
+        public static StreamEvent restart() {
+            return new StreamEvent("restart", null, null, null);
+        }
+
         public static StreamEvent done(ChatResponse message) {
             return new StreamEvent("done", null, message, null);
         }

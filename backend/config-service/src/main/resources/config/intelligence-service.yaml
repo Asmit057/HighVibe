@@ -16,11 +16,18 @@ spring:
 
 app:
   ai:
-    # gemini | demo | auto (auto = Gemini when GEMINI_API_KEY is set, otherwise the offline demo)
+    # gemini | demo | auto (auto = Gemini when a Gemini key is set, otherwise the offline demo)
     provider: ${AI_PROVIDER:auto}
     history-messages: ${AI_HISTORY_MESSAGES:12}
     gemini:
       # free key: https://aistudio.google.com/apikey
       api-key: ${GEMINI_API_KEY:}
+      # more keys, comma-separated: used in turn, and in place of a key that is rate-limited or rejected
+      api-keys: ${GEMINI_API_KEYS:}
       model: ${GEMINI_MODEL:gemini-3.5-flash-lite}
+      # used in order while the model above is overloaded or missing; it is tried again after a rest
+      # (set GEMINI_FALLBACK_MODELS to an empty value to turn fallback off)
+      fallback-models: ${GEMINI_FALLBACK_MODELS:gemini-3.1-flash-lite}
       max-output-tokens: ${GEMINI_MAX_OUTPUT_TOKENS:32768}
+      # calls per generation before giving up, across keys and models
+      max-attempts: ${GEMINI_MAX_ATTEMPTS:4}

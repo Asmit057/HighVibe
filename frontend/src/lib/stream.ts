@@ -3,6 +3,8 @@ import type { ChatMessage } from './types'
 
 export interface StreamHandlers {
   onDelta: (text: string) => void
+  /** The server is asking the model again: drop the text streamed so far. */
+  onRestart: () => void
   onDone: (message: ChatMessage) => void
   onError: (message: string) => void
 }
@@ -44,6 +46,7 @@ export async function streamChat(projectId: number, message: string, handlers: S
     try {
       const event = JSON.parse(data) as { type: string; text?: string; message?: ChatMessage; error?: string }
       if (event.type === 'delta' && event.text) handlers.onDelta(event.text)
+      else if (event.type === 'restart') handlers.onRestart()
       else if (event.type === 'done' && event.message) {
         finished = true
         handlers.onDone(event.message)

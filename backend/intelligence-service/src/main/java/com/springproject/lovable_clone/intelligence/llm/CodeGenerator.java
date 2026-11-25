@@ -3,7 +3,6 @@ package com.springproject.lovable_clone.intelligence.llm;
 import com.springproject.lovable_clone.common.dto.FileNode;
 
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -11,7 +10,17 @@ import java.util.function.Function;
  */
 public interface CodeGenerator {
 
-    GenerationResult generate(GenerationRequest request, Consumer<String> onDelta);
+    GenerationResult generate(GenerationRequest request, ReplyListener listener);
+
+    /** Receives the reply while it is written. */
+    @FunctionalInterface
+    interface ReplyListener {
+        void delta(String text);
+
+        /** The text streamed so far is discarded: the model is asked again from the start. */
+        default void restart() {
+        }
+    }
 
     /**
      * @param history    earlier turns, oldest first (role "user"/"assistant", text only)

@@ -124,7 +124,17 @@ public class AiGenerationService {
             GenerationResult result = generator.generate(
                     new GenerationRequest(projectId, request.message(), Objects.requireNonNull(turn).history(), files,
                             path -> workspaceClient.getFileContent(projectId, path)),
-                    text -> send(emitter, clientGone, StreamEvent.delta(text)));
+                    new CodeGenerator.ReplyListener() {
+                        @Override
+                        public void delta(String text) {
+                            send(emitter, clientGone, StreamEvent.delta(text));
+                        }
+
+                        @Override
+                        public void restart() {
+                            send(emitter, clientGone, StreamEvent.restart());
+                        }
+                    });
             long seconds = Math.max(1, (System.currentTimeMillis() - started) / 1000);
 
             usageService.recordTokens(userId, result.totalTokens());

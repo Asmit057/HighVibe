@@ -157,7 +157,10 @@ sequenceDiagram
 (`streamGenerateContent`); the current project files are sent with every request. Without a key, an
 offline **demo generator** builds a sample landing page from the prompt, so the whole pipeline (chat,
 saga, preview) still works, but it cannot build custom apps. Both implement one `CodeGenerator`
-interface, chosen with `AI_PROVIDER`.
+interface, chosen with `AI_PROVIDER`. Several keys can be set (`GEMINI_API_KEYS`): they are used in turn,
+and a rate-limited or rejected key rests while the next one takes over. An overloaded or missing model rests
+too, and the next model in `GEMINI_FALLBACK_MODELS` answers instead; a resting key or model is tried again
+when its rest is over. Every failed attempt is logged with Google's own error and the key's position, never the key.
 
 **Previews.** `PREVIEW_MODE=local` (default) materialises the project under `runtime/previews/<id>`,
 runs `npm install` + `vite` on a free port (5200–5299) and syncs every saved file to disk.
@@ -252,6 +255,8 @@ All settings live in `backend/config-service/src/main/resources/config/` and rea
 | `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` | `30m` / `30d` | Token lifetimes |
 | `AI_PROVIDER` | `auto` | `gemini`, `demo`, or `auto` (Gemini when a key is set, else demo) |
 | `GEMINI_API_KEY` / `GEMINI_MODEL` | — / `gemini-3.5-flash-lite` | Google Gemini, free tier ([get a key](https://aistudio.google.com/apikey)) |
+| `GEMINI_API_KEYS` / `GEMINI_MAX_ATTEMPTS` | — / `4` | Extra keys (comma-separated) used in turn and as fallback; calls per generation before giving up |
+| `GEMINI_FALLBACK_MODELS` | `gemini-3.1-flash-lite` | Models used in order while the main model is overloaded or missing (empty = off) |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` | — | Stripe billing; without them plan changes apply instantly (`BILLING_MOCK_MODE=true`) |
 | `STRIPE_PRICE_PRO` / `STRIPE_PRICE_BUSINESS` | — | Stripe price ids attached to the plans at startup |
 | `DB_USERNAME` / `DB_PASSWORD` | `highvibe` | PostgreSQL credentials |

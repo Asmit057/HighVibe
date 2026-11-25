@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -18,7 +17,7 @@ public class DemoCodeGenerator implements CodeGenerator {
     private static final String[] THEMES = {"emerald", "corporate", "retro", "cyberpunk", "valentine", "garden", "lofi", "dracula"};
 
     @Override
-    public GenerationResult generate(GenerationRequest request, Consumer<String> onDelta) {
+    public GenerationResult generate(GenerationRequest request, ReplyListener listener) {
         String prompt = request.userMessage().trim();
         String title = titleFrom(prompt);
         String theme = THEMES[Math.floorMod(prompt.hashCode(), THEMES.length)];
@@ -34,7 +33,7 @@ public class DemoCodeGenerator implements CodeGenerator {
 
         // stream in small chunks so the UI behaves exactly like a live model
         for (int i = 0; i < reply.length(); i += 48) {
-            onDelta.accept(reply.substring(i, Math.min(reply.length(), i + 48)));
+            listener.delta(reply.substring(i, Math.min(reply.length(), i + 48)));
             sleep(8);
         }
         long outputTokens = reply.length() / 4;
